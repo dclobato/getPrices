@@ -1,6 +1,9 @@
 directory = '/Users/dclobato/Documents/Bancos/Cotacoes/Snapshots/'
 directory2 = '/Users/dclobato/Documents/Bancos/Cotacoes/'
 
+contas = moneydance.getRootAccount()
+moedas = contas.getCurrencyTable()
+
 def openHistory(ativo):
     try:
         fHandle = open(directory + ativo + '.mdSnapshots', 'r')
@@ -13,21 +16,13 @@ def loadHistory(nomeAtivo, tipoAtivo):
     fHistory = openHistory(nomeAtivo)
     if fHistory is None:
         return
-
-    if tipoAtivo == 'F':
-        print "Processando dados do fundo", nomeAtivo
-        ativoMD = moedas.getCurrencyByTickerSymbol(nomeAtivo)
-
-    if tipoAtivo == 'M':
-        print "Processando dados da moeda", nomeAtivo
-        ativoMD = moedas.getCurrencyByIDString(nomeAtivo)
-
+    print "Processando dados de", nomeAtivo
+    ativoMD = moedas.getCurrencyByIDString(nomeAtivo)
     if ativoMD:
         CE = ativoMD.getSnapshotCount()
         count = 0
         s = fHistory.readline().rstrip()
         maisRecente = s
-
         while len(s) <> 0:
             count = count + 1
             f = s.split()
@@ -36,28 +31,20 @@ def loadHistory(nomeAtivo, tipoAtivo):
             ativoMD.setSnapshotInt(iData, fPrice)
             print ".",
             s = fHistory.readline().rstrip()
-
         fHistory.close()
         print " Feito!"
         f = maisRecente.split()
         iData = int(f[0])
         fPrice = 1/float(f[1])
         ativoMD.setUserRate(fPrice)
-
         print "Cotacao mais recente...: " + str(f[1]) + " @" + str(iData)
         print
-
     else:
         print "Nao existe ativo com o nome " + nomeAtivo + " no arquivo Moneydance atual"
-
-
     return
 
 fCotacoes = open(directory2 + 'ativos.txt', 'r')
 ativo = fCotacoes.readline().rstrip()
-
-contas = moneydance.getRootAccount()
-moedas = contas.getCurrencyTable()
 
 while len(ativo) <> 0:
     campos = ativo.split()
