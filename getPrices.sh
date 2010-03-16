@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FIM="`date +"%d/%m/%Y"`"
-INICIO="`date -v-2m +"%d/%m/%Y"`"
+INICIO="`date -v-1m +"%d/%m/%Y"`"
 DIRETORIO="/Users/dclobato/Documents/Bancos/Cotacoes/Snapshots/"
 
 ELINKS=`which elinks`
