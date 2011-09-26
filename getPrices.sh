@@ -1,16 +1,18 @@
 #!/bin/bash
 
 FIM="`date +"%d/%m/%Y"`"
-INICIO="`date -v-1m +"%d/%m/%Y"`"
+INICIO="`date -v-2m +"%d/%m/%Y"`"
 DIRETORIO="/Users/dclobato/Documents/Bancos/Cotacoes/Snapshots/"
 
 ELINKS=`which elinks`
 ELINKSPAR='-dump 1 -dump-width 500'
 SED=`which sed`
+WGET=`which wget`
 AWK=`which awk`
 TR=`which tr`
 CUT=`which cut`
 SORT=`which sort`
+READ=`which read`
 
 BBURL="http://www21.bb.com.br/portalbb/cotaFundos/GFI9,2,null,null,006.bbx?tipo=5\&fundo="
 GFURL="https://online.gerafuturo.com.br/onlineGeracao/PortalManager?show=produtos.resultado_historico_cotas\&busca=s\&dataInicio=$INICIO\&dataFim=$FIM\&id_fundo_clube="
@@ -54,10 +56,15 @@ processLine(){
   fi
   if [ "$BANCO" == "BC" ]; then
      MOEDA=$(echo $line | awk '{ print $5 }')
-     BCPAR="?RadOpcao=1\&DATAINI=$INICIO\&DATAFIM=$FIM\&ChkMoeda=$CODFU\&OPCAO=1\&MOEDA=$CODFU\&DESCMOEDA=$MOEDA\&BOLETIM=\&TxtOpcao5=$MOEDA\&TxtOpcao4=$CODFU"
-     eval "$ELINKS $ELINKSPAR $BCURL$BCPAR > $tmpFile1"
-     TOGET=`cat $tmpFile1 | grep "download/cotacoes/BC" | cut -f 3 -d " " | uniq`
-     wget $TOGET -q -O $tmpFile2
+     INICIOBC=`echo $INICIO | $SED 's/\//\%2F/g'`
+     FIMBC=`echo $FIM | $SED 's/\//\%2F/g'`
+
+     BCPAR="?RadOpcao=1&DATAINI=$INICIOBC&DATAFIM=$FIMBC&ChkMoeda=$CODFU&OPCAO=1&MOEDA=$CODFU&DESCMOEDA=$MOEDA&BOLETIM=&TxtOpcao5=$MOEDA&TxtOpcao4=$CODFU"
+     $WGET -q "$BCURL$BCPAR" -O $tmpFile1
+     eval "$ELINKS $ELINKSPAR $tmpFile1 > $tmpFile2"
+     TOGET=`cat $tmpFile2 | grep "download/cotacoes/BC" | cut -f 3 -d " " | uniq`
+     #echo $TOGET
+     $WGET $TOGET -q -O $tmpFile2
      cat $tmpFile2 | eval "$BASEPARSER | $BCPARSE" > $tmpFile1
      eval "$ENDPARSER < $tmpFile1 >$finalFile"
   fi
