@@ -15,7 +15,7 @@ SORT=`which sort`
 READ=`which read`
 
 ## BBURL="http://www21.bb.com.br/portalbb/cotaFundos/GFI9,2,null,null,006.bbx?tipo=5\&fundo="
-BBURL="http://www37.bb.com.br/portalbb/cotaFundos/GFI9,2,001.bbx?tipo=5&fundo="
+BBURL="http://www37.bb.com.br/portalbb/cotaFundos/GFI9,2,001.bbx?tipo=5\&fundo="
 GFURL="https://online.gerafuturo.com.br/onlineGeracao/PortalManager?show=produtos.resultado_historico_cotas\&busca=s\&dataInicio=$INICIO\&dataFim=$FIM\&id_fundo_clube="
 BCURL="http://www4.bcb.gov.br/pec/taxas/port/PtaxRPesq.asp"
 
