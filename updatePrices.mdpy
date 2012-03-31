@@ -1,4 +1,4 @@
-directory = '/Users/dclobato/Documents/Bancos/Cotacoes/Snapshots/'
+directory = '/Users/dclobato/Documents/Bancos/Cotacoes/Snapshots/ultimo/'
 directory2 = '/Users/dclobato/Documents/Bancos/Cotacoes/'
 
 contas = moneydance.getRootAccount()

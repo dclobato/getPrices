@@ -1,8 +1,10 @@
 #!/bin/bash
 
 FIM="`date +"%d/%m/%Y"`"
+HOJE="`date "+%Y%m%d"`"
 INICIO="`date -v-3m +"%d/%m/%Y"`"
-DIRETORIO="/Users/dclobato/Documents/Bancos/Cotacoes/Snapshots/"
+BASE="/Users/dclobato/Documents/Bancos/Cotacoes/Snapshots/"
+DIRETORIO="$BASE$HOJE/"
 
 ELINKS=`which elinks`
 ELINKSPAR='-dump 1 -dump-width 500'
@@ -69,8 +71,23 @@ processLine(){
      cat $tmpFile2 | eval "$BASEPARSER | $BCPARSE" > $tmpFile1
      eval "$ENDPARSER < $tmpFile1 >$finalFile"
   fi
+  echo -n "  Cotacao mais atual >> "
+  echo "`head -n 1 $finalFile`"
+  echo ""
   rm $tmpFile2 $tmpFile1
 }
+
+if [ -d $DIRETORIO ]; then
+ echo ""
+ echo "Cotacoes para hoje ja foram obtidas."
+ echo "Para obte-las novamente, apague o diretorio $DIRETORIO"
+ echo ""
+ exit 1
+fi
+
+echo "Criando diretorio para as cotacoes atuais."
+mkdir $DIRETORIO
+echo "Feito!"
 
 # Store file name
 ARQFUNDOS=""
@@ -105,4 +122,14 @@ exec 0<&3
 
 # restore $IFS which was used to determine what the field separators are
 IFS=$BAKIFS
+
+if [ -h $BASE/ultimo ]; then
+ echo "Atualizando o link para o diretorio com as cotacoes atuais..."
+ rm $BASE/ultimo
+else
+ echo "Criando o link para o diretorio com as cotacoes atuais..."
+fi
+ln -s $DIRETORIO $BASE/ultimo
+echo "Feito!"
+echo ""
 exit 0
