@@ -20,6 +20,8 @@ READ=`which read`
 BBURL="http://www37.bb.com.br/portalbb/cotaFundos/GFI9,2,001.bbx?tipo=5\&fundo="
 GFURL="https://online.gerafuturo.com.br/onlineGeracao/PortalManager?show=produtos.resultado_historico_cotas\&busca=s\&dataInicio=$INICIO\&dataFim=$FIM\&id_fundo_clube="
 BCURL="http://www4.bcb.gov.br/pec/taxas/port/PtaxRPesq.asp"
+BVURL="http://www.infomoney.com.br/Download.aspx?dtIni=null\&dtFinish=null\&Semana=null\&Per=3\&type=1\&StockType=1\&Stock="
+BVURL2="\&Ativo="
 
 #### Remove linhas em branco
 BASEPARSER="$AWK '/./' | $SED -e 's/^ *//'"
@@ -31,6 +33,7 @@ ENDPARSER="$SORT -rn"
 BBPARSE="$SED '1,6d' | $SED -e :a -e '\$d;N;2,3ba' -e 'P;D' | $TR -s ' ' ';' | $TR -s '.' '/' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s\n\", \$3, \$2, \$1, \$4 ; }'"
 GFPARSE="$TR -s ' ' ';' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s\n\", \$3, \$2, \$1, \$4 ; }'"
 BCPARSE="$CUT -s -f 1,6 -d ';' | $AWK -F ';' '{ printf \"%s %f\\n\", \$1, \$2 ; }' | $TR ',' '.' | $AWK -F '\\0' '{ print substr(\$0, 5, 4) substr(\$0, 3, 2) substr(\$0, 1, 2), substr(\$0, 10)}'"
+BVPARSE="$SED -E -e 's/^ *//;1d;s/ +/ /g;s/\.//g' | $CUT -s -f 1,2,6,8,9 -d ' ' | $SED -E -e 's/$/000/' | $TR -s ' ' ';' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s %s %s %s\\n\", \$3, \$2, \$1, \$4, \$5, \$6, \$7}'"
 
 processLine(){
   line="$@" # get all args
@@ -61,7 +64,6 @@ processLine(){
      MOEDA=$(echo $line | awk '{ print $5 }')
      INICIOBC=`echo $INICIO | $SED 's/\//\%2F/g'`
      FIMBC=`echo $FIM | $SED 's/\//\%2F/g'`
-
      BCPAR="?RadOpcao=1&DATAINI=$INICIOBC&DATAFIM=$FIMBC&ChkMoeda=$CODFU&OPCAO=1&MOEDA=$CODFU&DESCMOEDA=$MOEDA&BOLETIM=&TxtOpcao5=$MOEDA&TxtOpcao4=$CODFU"
      $WGET -q "$BCURL$BCPAR" -O $tmpFile1
      eval "$ELINKS $ELINKSPAR $tmpFile1 > $tmpFile2"
@@ -71,6 +73,12 @@ processLine(){
      cat $tmpFile2 | eval "$BASEPARSER | $BCPARSE" > $tmpFile1
      eval "$ENDPARSER < $tmpFile1 >$finalFile"
   fi
+  if [ "$BANCO" == "BV" ]; then
+     eval "$ELINKS $ELINKSPAR $BVURL$CODFU$BVURL2$CODFU > $tmpFile1"
+     cat $tmpFile1 | eval "$BASEPARSER | $BVPARSE > $tmpFile2"
+     eval "$ENDPARSER < $tmpFile2 >$finalFile"
+  fi
+
   echo -n "  Cotacao mais atual >> "
   echo "`head -n 1 $finalFile`"
   echo ""
