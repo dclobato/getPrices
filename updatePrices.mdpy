@@ -28,7 +28,14 @@ def loadHistory(nomeAtivo, tipoAtivo):
             f = s.split()
             iData = int(f[0])
             fPrice = 1/float(f[1])
-            ativoMD.setSnapshotInt(iData, fPrice)
+            snapshot = ativoMD.setSnapshotInt(iData, fPrice)
+            if tipoAtivo in ('A'):
+               fLow = 1/float(f[2])
+               fHigh = 1/float(f[3])
+               lVolume = long(f[4])
+               snapshot.setUserDailyHigh(fHigh)
+               snapshot.setUserDailyLow(fLow)
+               snapshot.setDailyVolume(lVolume)
             print ".",
             s = fHistory.readline().rstrip()
         fHistory.close()
