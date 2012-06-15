@@ -30,7 +30,7 @@ BASEPARSER="$AWK '/./' | $SED -e 's/^ *//'"
 ENDPARSER="$SORT -rn"
 
 #### Parsers para cada um dos bancos
-BBPARSE="$SED '1,4d' | $SED -e :a -e '\$d;N;2,3ba' -e 'P;D' | $TR -s ' ' ';' | $TR -s '.' '/' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s\n\", \$3, \$2, \$1, \$4 ; }'"
+BBPARSE="$SED '1,3d' | $SED -e :a -e '\$d;N;2,3ba' -e 'P;D' | $TR -s ' ' ';' | $TR -s '.' '/' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s\n\", \$3, \$2, \$1, \$4 ; }'"
 GFPARSE="$TR -s ' ' ';' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s\n\", \$3, \$2, \$1, \$4 ; }'"
 BCPARSE="$CUT -s -f 1,6 -d ';' | $AWK -F ';' '{ printf \"%s %f\\n\", \$1, \$2 ; }' | $TR ',' '.' | $AWK -F '\\0' '{ print substr(\$0, 5, 4) substr(\$0, 3, 2) substr(\$0, 1, 2), substr(\$0, 10)}'"
 BVPARSE="$SED -E -e 's/^ *//;1d;s/ +/ /g;s/\.//g' | $CUT -s -f 1,2,6,8,9 -d ' ' | $TR -s ' ' ';' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s %s %s %s\\n\", \$3, \$2, \$1, \$4, \$5, \$6, \$7}'"
@@ -85,17 +85,24 @@ processLine(){
   rm $tmpFile2 $tmpFile1
 }
 
+CRIA=1
 if [ -d $DIRETORIO ]; then
  echo ""
  echo "Cotacoes para hoje ja foram obtidas."
- echo "Para obte-las novamente, apague o diretorio $DIRETORIO"
- echo ""
- exit 1
+ read -p "Vamos obter novamente? (s/n)" RESP
+ if [ "$RESP" = n ] ; then
+  echo "Para obte-las novamente, apague o diretorio $DIRETORIO"
+  echo ""
+  exit 1
+ fi
+ CRIA=0
 fi
 
-echo "Criando diretorio para as cotacoes atuais."
-mkdir $DIRETORIO
-echo "Feito!"
+if [ "$CRIA" = "1" ] ; then
+ echo "Criando diretorio para as cotacoes atuais."
+ mkdir $DIRETORIO
+ echo "Feito!"
+fi
 
 # Store file name
 ARQFUNDOS=""
