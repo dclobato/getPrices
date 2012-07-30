@@ -20,8 +20,11 @@ READ=`which read`
 BBURL="http://www37.bb.com.br/portalbb/cotaFundos/GFI9,2,001.bbx?tipo=5\&fundo="
 GFURL="https://online.gerafuturo.com.br/onlineGeracao/PortalManager?show=produtos.resultado_historico_cotas\&busca=s\&dataInicio=$INICIO\&dataFim=$FIM\&id_fundo_clube="
 BCURL="http://www4.bcb.gov.br/pec/taxas/port/PtaxRPesq.asp"
-BVURL="http://www.infomoney.com.br/Download.aspx?dtIni=null\&dtFinish=null\&Semana=null\&Per=3\&type=1\&StockType=1\&Stock="
+BVURL="http://www.infomoney.com.br/Pages/Download/Download.aspx?dtIni=null\&dtFinish=null\&Semana=null\&Per=3\&type=1\&StockType=1\&Stock="
 BVURL2="\&Ativo="
+
+#\&Ativo=HTMX11B&Stock=HTMX11B
+#BVURL="http://www.infomoney.com.br/Download.aspx?dtIni=null\&dtFinish=null\&Semana=null\&Per=3\&type=1\&StockType=1\&Stock="
 
 #### Remove linhas em branco
 BASEPARSER="$AWK '/./' | $SED -e 's/^ *//'"
@@ -82,7 +85,7 @@ processLine(){
   echo -n "  Cotacao mais atual >> "
   echo "`head -n 1 $finalFile`"
   echo ""
-  rm $tmpFile2 $tmpFile1
+  #rm $tmpFile2 $tmpFile1
 }
 
 CRIA=1
