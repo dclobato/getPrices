@@ -17,6 +17,7 @@ SORT=`which sort`
 READ=`which read`
 XLS2CSV=`which xls2csv`
 TAIL=`which tail`
+WC=`which wc`
 
 WGETOPT="--no-check-certificate -q --user-agent=\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/537.13+ (KHTML, like Gecko) Version/5.1.7 Safari/534.57.2\""
 
@@ -98,6 +99,8 @@ processLine(){
      rm $FILTD.xls
   fi
 
+  echo -n "  Total de cotacoes >>> "
+  echo "`$WC -l $finalFile`"
   echo -n "  Cotacao mais atual >> "
   echo "`head -n 1 $finalFile`"
   echo ""
