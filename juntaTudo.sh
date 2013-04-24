@@ -14,6 +14,7 @@ TR=`which tr`
 CUT=`which cut`
 SORT=`which sort`
 READ=`which read`
+WC=`which wc`
 
 #### Remove linhas em branco
 BASEPARSER="$AWK '/./' | $SED -e 's/^ *//'"
@@ -34,9 +35,11 @@ processLine(){
       cat $x/$SAIDA.mdSnapshots >> $TMPFILE
     fi 
   }
-  
+ 
+  echo -n "$SAIDA..." 
   cat $TMPFILE | eval "$BASEPARSER | $ENDPARSER > $DIRETORIO/$SAIDA.hist"
   rm $TMPFILE
+  $WC -l $DIRETORIO/$SAIDA.hist
 }
 
 CRIA=1
