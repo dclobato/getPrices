@@ -24,7 +24,8 @@ WGETOPT="--no-check-certificate -q --user-agent=\"Mozilla/5.0 (Macintosh; Intel 
 ## BBURL="http://www21.bb.com.br/portalbb/cotaFundos/GFI9,2,null,null,006.bbx?tipo=5\&fundo="
 BBURL="http://www37.bb.com.br/portalbb/cotaFundos/GFI9,2,001.bbx?tipo=5\&fundo="
 GFURL="https://online.gerafuturo.com.br/onlineGeracao/PortalManager?show=produtos.resultado_historico_cotas\&busca=s\&dataInicio=$INICIO\&dataFim=$FIM\&id_fundo_clube="
-BCURL="http://www4.bcb.gov.br/pec/taxas/port/PtaxRPesq.asp"
+#BCURL="http://www4.bcb.gov.br/pec/taxas/port/PtaxRPesq.asp"
+BCURL="https://www3.bcb.gov.br/ptax_internet/consultaBoletim.do?method=gerarCSVFechamentoMoedaNoPeriodo&ChkMoeda="
 BVURL="http://www.infomoney.com.br/Pages/Download/Download.aspx?dtIni=null\&dtFinish=null\&Semana=null\&Per=3\&type=1\&StockType=1\&Stock="
 BVURL2="\&Ativo="
 TDURL="https://www.tesouro.fazenda.gov.br/images/arquivos/artigos/"
@@ -72,16 +73,18 @@ processLine(){
      eval "$ENDPARSER < $tmpFile2 >$finalFile"
   fi
   if [ "$BANCO" == "BC" ]; then
+     #https://www3.bcb.gov.br/ptax_internet/consultaBoletim.do?method=gerarCSVFechamentoMoedaNoPeriodo&ChkMoeda=222&DATAINI=19/11/2013&DATAFIM=21/12/2013
      MOEDA=$(echo $line | awk '{ print $5 }')
      INICIOBC=`echo $INICIO | $SED 's/\//\%2F/g'`
      FIMBC=`echo $FIM | $SED 's/\//\%2F/g'`
-     BCPAR="?RadOpcao=1&DATAINI=$INICIOBC&DATAFIM=$FIMBC&ChkMoeda=$CODFU&OPCAO=1&MOEDA=$CODFU&DESCMOEDA=$MOEDA&BOLETIM=&TxtOpcao5=$MOEDA&TxtOpcao4=$CODFU"
+     BCPAR="$CODFU&DATAINI=$INICIO&DATAFIM=$FIM"
+     echo "$BCURL$BCPAR"
      $WGET -q "$BCURL$BCPAR" -O $tmpFile1
-     eval "$ELINKS $ELINKSPAR $tmpFile1 > $tmpFile2"
-     TOGET=`cat $tmpFile2 | grep "download/cotacoes/BC" | cut -f 3 -d " " | uniq`
-     $WGET $TOGET -q -O $tmpFile2
-     cat $tmpFile2 | eval "$BASEPARSER | $BCPARSE" > $tmpFile1
-     eval "$ENDPARSER < $tmpFile1 >$finalFile"
+     #eval "$ELINKS $ELINKSPAR $tmpFile1 > $tmpFile2"
+     #TOGET=`cat $tmpFile2 | grep "download/cotacoes/BC" | cut -f 3 -d " " | uniq`
+     #$WGET $TOGET -q -O $tmpFile2
+     cat $tmpFile1 | eval "$BASEPARSER | $BCPARSE" > $tmpFile2
+     eval "$ENDPARSER < $tmpFile2 >$finalFile"
   fi
   if [ "$BANCO" == "BV" ]; then
      eval "$ELINKS $ELINKSPAR $BVURL$CODFU$BVURL2$CODFU > $tmpFile1"
@@ -104,7 +107,7 @@ processLine(){
   echo -n "  Cotacao mais atual >> "
   echo "`head -n 1 $finalFile`"
   echo ""
-  rm $tmpFile2 $tmpFile1
+  #rm $tmpFile2 $tmpFile1
 }
 
 CRIA=1
