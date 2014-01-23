@@ -4,6 +4,7 @@ FIM="`date +"%d/%m/%Y"`"
 HOJE="`date "+%Y%m%d"`"
 INICIO="`date -v-3m +"%d/%m/%Y"`"
 BASE="/Users/dclobato/Documents/Bancos/Cotacoes/Snapshots/"
+PROCESSAGF="/Users/dclobato/Documents/Bancos/Programas/leGerafuturo.py"
 DIRETORIO="$BASE$HOJE/"
 
 ELINKS=`which elinks`
@@ -18,13 +19,15 @@ READ=`which read`
 XLS2CSV=`which xls2csv`
 TAIL=`which tail`
 WC=`which wc`
+PYTHON=`which python`
 
 WGETOPT="--no-check-certificate -q --user-agent=\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/537.13+ (KHTML, like Gecko) Version/5.1.7 Safari/534.57.2\""
 
-## BBURL="http://www21.bb.com.br/portalbb/cotaFundos/GFI9,2,null,null,006.bbx?tipo=5\&fundo="
+INICIOGF=`echo $INICIO | $AWK -F '[/]' '{printf "%s%%2F%s%%2F%s", \$2, \$1, \$3}'`
+FIMGF=`echo $FIM | $AWK -F '[/]' '{printf "%s%%2F%s%%2F%s", \$2, \$1, \$3}'`
+
 BBURL="http://www37.bb.com.br/portalbb/cotaFundos/GFI9,2,001.bbx?tipo=5\&fundo="
-GFURL="https://online.gerafuturo.com.br/onlineGeracao/PortalManager?show=produtos.resultado_historico_cotas\&busca=s\&dataInicio=$INICIO\&dataFim=$FIM\&id_fundo_clube="
-#BCURL="http://www4.bcb.gov.br/pec/taxas/port/PtaxRPesq.asp"
+GFURL="http://gerafuturo.com.br/api/fundos/"
 BCURL="https://www3.bcb.gov.br/ptax_internet/consultaBoletim.do?method=gerarCSVFechamentoMoedaNoPeriodo&ChkMoeda="
 BVURL="http://www.infomoney.com.br/Pages/Download/Download.aspx?dtIni=null\&dtFinish=null\&Semana=null\&Per=3\&type=1\&StockType=1\&Stock="
 BVURL2="\&Ativo="
@@ -38,10 +41,9 @@ ENDPARSER="$SORT -rn"
 
 #### Parsers para cada um dos bancos
 BBPARSE="$SED '1,3d' | $SED -e :a -e '\$d;N;2,3ba' -e 'P;D' | $TR -s ' ' ';' | $TR -s '.' '/' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s\n\", \$3, \$2, \$1, \$4 ; }'"
-GFPARSE="$TR -s ' ' ';' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s\n\", \$3, \$2, \$1, \$4 ; }'"
 BCPARSE="$CUT -s -f 1,6 -d ';' | $AWK -F ';' '{ printf \"%s %f\\n\", \$1, \$2 ; }' | $TR ',' '.' | $AWK -F '\\0' '{ print substr(\$0, 5, 4) substr(\$0, 3, 2) substr(\$0, 1, 2), substr(\$0, 10)}'"
 BVPARSE="$SED -E -e 's/^ *//;1d;s/ +/ /g;s/\.//g' | $CUT -s -f 1,2,6,8,9 -d ' ' | $TR -s ' ' ';' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s %s %s %s\\n\", \$3, \$2, \$1, \$4, \$5, \$6, \$7}'"
-TDPARSE="$SED '1,2d' | $CUT -f 1,5 -d ';' | $SED -E -e 's/,//g' | awk -F '[/|;]' '{printf \"%s%s%s %s\\n\", \$3, \$2, \$1, \$4}'"
+TDPARSE="$SED '1,2d' | $CUT -f 1,5 -d ';' | $SED -E -e 's/,//g' | $AWK -F '[/|;]' '{printf \"%s%s%s %s\\n\", \$3, \$2, \$1, \$4}'"
 
 processLine(){
   line="$@" # get all args
@@ -68,21 +70,16 @@ processLine(){
      eval "$ENDPARSER < $tmpFile2 >$finalFile"
   fi
   if [ "$BANCO" == "GF" ]; then
-     eval "$ELINKS $ELINKSPAR $GFURL$CODFU > $tmpFile1"
-     cat $tmpFile1 | eval "$BASEPARSER | $GFPARSE > $tmpFile2"
-     eval "$ENDPARSER < $tmpFile2 >$finalFile"
+     GFPAR="$CODFU/cotas?inicial=$INICIOGF&final=$FIMGF"
+     $WGET -q "$GFURL$GFPAR" -O $tmpFile1
+     $PYTHON $PROCESSAGF $tmpFile1 > $tmpFile2
+     cat $tmpFile2 | eval "$BASEPARSER > $tmpFile1"
+     eval "$ENDPARSER < $tmpFile1 >$finalFile"
   fi
   if [ "$BANCO" == "BC" ]; then
-     #https://www3.bcb.gov.br/ptax_internet/consultaBoletim.do?method=gerarCSVFechamentoMoedaNoPeriodo&ChkMoeda=222&DATAINI=19/11/2013&DATAFIM=21/12/2013
      MOEDA=$(echo $line | awk '{ print $5 }')
-     INICIOBC=`echo $INICIO | $SED 's/\//\%2F/g'`
-     FIMBC=`echo $FIM | $SED 's/\//\%2F/g'`
      BCPAR="$CODFU&DATAINI=$INICIO&DATAFIM=$FIM"
-     echo "$BCURL$BCPAR"
      $WGET -q "$BCURL$BCPAR" -O $tmpFile1
-     #eval "$ELINKS $ELINKSPAR $tmpFile1 > $tmpFile2"
-     #TOGET=`cat $tmpFile2 | grep "download/cotacoes/BC" | cut -f 3 -d " " | uniq`
-     #$WGET $TOGET -q -O $tmpFile2
      cat $tmpFile1 | eval "$BASEPARSER | $BCPARSE" > $tmpFile2
      eval "$ENDPARSER < $tmpFile2 >$finalFile"
   fi
