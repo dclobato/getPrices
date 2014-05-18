@@ -31,7 +31,7 @@ GFURL="http://gerafuturo.com.br/api/fundos/"
 BCURL="https://www3.bcb.gov.br/ptax_internet/consultaBoletim.do?method=gerarCSVFechamentoMoedaNoPeriodo&ChkMoeda="
 BVURL="http://www.infomoney.com.br/Pages/Download/Download.aspx?dtIni=null\&dtFinish=null\&Semana=null\&Per=3\&type=1\&StockType=1\&Stock="
 BVURL2="\&Ativo="
-TDURL="https://www.tesouro.fazenda.gov.br/images/arquivos/artigos/"
+TDURL="https://www.tesouro.fazenda.gov.br/documents/10180/137713/"
 
 #### Remove linhas em branco
 BASEPARSER="$AWK '/./' | $SED -e 's/^ *//'"
