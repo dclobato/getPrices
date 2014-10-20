@@ -4,7 +4,7 @@ FIM="`date +"%d/%m/%Y"`"
 HOJE="`date "+%Y%m%d"`"
 INICIO="`date -v-3m +"%d/%m/%Y"`"
 BASE="/Users/dclobato/Documents/Bancos/Cotacoes/Snapshots/"
-PROCESSAGF="/Users/dclobato/Documents/Bancos/Programas/leGerafuturo.py"
+PROCESSAGF="/Users/dclobato/Documents/Bancos/Programas/getPrices/leGerafuturo.py"
 DIRETORIO="$BASE$HOJE/"
 
 ELINKS=`which elinks`
@@ -43,7 +43,7 @@ ENDPARSER="$SORT -rn"
 BBPARSE="$SED '1,4d' | $SED -n -e :a -e '1,4!{P;N;D;};N;ba' | $SED -e :a -e '\$d;N;2,3ba' -e 'P;D' | $TR -s ' ' ';' | $TR -s '.' '/' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s\n\", \$3, \$2, \$1, \$4 ; }'"
 BCPARSE="$CUT -s -f 1,6 -d ';' | $AWK -F ';' '{ printf \"%s %f\\n\", \$1, \$2 ; }' | $TR ',' '.' | $AWK -F '\\0' '{ print substr(\$0, 5, 4) substr(\$0, 3, 2) substr(\$0, 1, 2), substr(\$0, 10)}'"
 BVPARSE="$SED -E -e 's/^ *//;1d;s/ +/ /g;s/\.//g' | $CUT -s -f 1,2,6,8,9 -d ' ' | $TR -s ' ' ';' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s %s %s %s\\n\", \$3, \$2, \$1, \$4, \$5, \$6, \$7}'"
-TDPARSE="$SED '1,2d' | $CUT -f 1,5 -d ';' | $SED -E -e 's/,//g' | $AWK -F '[/|;]' '{printf \"%s%s%s %s\\n\", \$3, \$2, \$1, \$4}'"
+TDPARSE="$SED '1,2d' | $SED -E -e 's/,/;/g' | $CUT -f 1,5 -d ';' | $SED -E -e 's/,//g' | $AWK -F '[/|;]' '{printf \"%s%s%s %s\\n\", \$3, \$2, \$1, \$4}'"
 
 processLine(){
   line="$@" # get all args
