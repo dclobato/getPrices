@@ -43,7 +43,7 @@ ENDPARSER="$SORT -rn"
 BBPARSE="$SED '1,4d' | $SED -n -e :a -e '1,4!{P;N;D;};N;ba' | $SED -e :a -e '\$d;N;2,3ba' -e 'P;D' | $TR -s ' ' ';' | $TR -s '.' '/' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s\n\", \$3, \$2, \$1, \$4 ; }'"
 BCPARSE="$CUT -s -f 1,6 -d ';' | $AWK -F ';' '{ printf \"%s %f\\n\", \$1, \$2 ; }' | $TR ',' '.' | $AWK -F '\\0' '{ print substr(\$0, 5, 4) substr(\$0, 3, 2) substr(\$0, 1, 2), substr(\$0, 10)}'"
 BVPARSE="$SED -E -e 's/^ *//;1d;s/ +/ /g;s/\.//g' | $CUT -s -f 1,2,6,8,9 -d ' ' | $TR -s ' ' ';' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s %s %s %s\\n\", \$3, \$2, \$1, \$4, \$5, \$6, \$7}'"
-TDPARSE="$SED '1,2d' | $SED -E -e 's/,/;/g' | $CUT -f 1,5 -d ';' | $SED -E -e 's/,//g' | $AWK -F '[/|;]' '{printf \"%s%s%s %s\\n\", \$3, \$2, \$1, \$4}' | $SED -E -e 's/"//g'"
+TDPARSE="$SED '1,2d' | $SED -E -e 's/,/;/g' | $CUT -f 1,5 -d ';' | $SED -E -e 's/,//g' | $AWK -F '[/|;]' '{printf \"%s%s%s %s\\n\", \$3, \$2, \$1, \$4}' | $SED -E -e 's/\"//g'"
 
 processLine(){
   line="$@" # get all args
@@ -55,7 +55,7 @@ processLine(){
   FILTD=$(echo $line | awk '{ print $5 }')   # Nome do arquivo cotacoes (apenas para TIPO="TD")
   VENTD=$(echo $line | awk '{ print $6 }')   # Vencimento do titulo publico (apenas para TIPO="TD")
   PRETD=$(echo $line | awk '{ print $7 }')    # Prefixo na planilha (apenas para TIPO="TD")
-  
+
 
   tmpFile1="$DIRETORIO$SAIDA.1.tmp"
   tmpFile2="$DIRETORIO$SAIDA.2.tmp"
