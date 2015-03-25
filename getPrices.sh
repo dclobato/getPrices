@@ -25,6 +25,8 @@ WGETOPT="--no-check-certificate -q --user-agent=\"Mozilla/5.0 (Macintosh; Intel 
 
 INICIOGF=`echo $INICIO | $AWK -F '[/]' '{printf "%s%%2F%s%%2F%s", \$2, \$1, \$3}'`
 FIMGF=`echo $FIM | $AWK -F '[/]' '{printf "%s%%2F%s%%2F%s", \$2, \$1, \$3}'`
+INICIOYA=`echo $INICIO | awk -F '[/]' '{printf "&a=%s&b=%s&c=%s", $2-1, $1, $3}'`
+FIMYA=`echo $FIM | awk -F '[/]' '{printf "&d=%s&e=%s&f=%s", $2-1, $1, $3}'`
 
 BBURL="http://www37.bb.com.br/portalbb/cotaFundos/GFI9,2,001.bbx?tipo=5\&fundo="
 GFURL="http://gerafuturo.com.br/api/fundos/"
@@ -32,6 +34,7 @@ BCURL="https://www3.bcb.gov.br/ptax_internet/consultaBoletim.do?method=gerarCSVF
 BVURL="http://www.infomoney.com.br/Pages/Download/Download.aspx?dtIni=null\&dtFinish=null\&Semana=null\&Per=3\&type=1\&StockType=1\&Stock="
 BVURL2="\&Ativo="
 TDURL="https://www.tesouro.fazenda.gov.br/documents/10180/137713/"
+YAURL="http://ichart.yahoo.com/table.csv?s="
 
 #### Remove linhas em branco
 BASEPARSER="$AWK '/./' | $SED -e 's/^ *//'"
@@ -42,8 +45,9 @@ ENDPARSER="$SORT -rn"
 #### Parsers para cada um dos bancos
 BBPARSE="$SED '1,4d' | $SED -n -e :a -e '1,4!{P;N;D;};N;ba' | $SED -e :a -e '\$d;N;2,3ba' -e 'P;D' | $TR -s ' ' ';' | $TR -s '.' '/' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s\n\", \$3, \$2, \$1, \$4 ; }'"
 BCPARSE="$CUT -s -f 1,6 -d ';' | $AWK -F ';' '{ printf \"%s %f\\n\", \$1, \$2 ; }' | $TR ',' '.' | $AWK -F '\\0' '{ print substr(\$0, 5, 4) substr(\$0, 3, 2) substr(\$0, 1, 2), substr(\$0, 10)}'"
-BVPARSE="$SED -E -e 's/^ *//;1d;s/ +/ /g;s/\.//g' | $CUT -s -f 1,2,6,8,9 -d ' ' | $TR -s ' ' ';' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s %s %s %s\\n\", \$3, \$2, \$1, \$4, \$5, \$6, \$7}'"
+BVPARSE="$SED -E -e 's/^ *//;1d;s/ +/ /g;s/\.//g' | $CUT -s -f 1,2,6,8,9 -d ' ' | $TR -s ' ' ';' | $TR -s ',' '.' | $AWK -F '[/|;]' '{ printf \"%s%s%s %s %s %s %s\\n\", \$3, \$2, \$1, \$4, \$5, \$6, \$7}' | $SED '/^A/d'"
 TDPARSE="$SED '1,2d' | $SED -E -e 's/\"([0-9]{1,3}),([0-9]{3}).([0-9]{1,2})\"/\1\2.\3/g' | $SED -E -e 's/,/;/g' | $CUT -f 1,5 -d ';' | $SED -E -e 's/,//g' | $AWK -F '[/|;]' '{printf \"%s%s%s %s\\n\", \$3, \$2, \$1, \$4}' | $SED -E -e 's/\"//g'"
+YAPARSE="$SED '1d' | $AWK -F '[,-]' '{printf \"%s%s%s %s %s %s %s\\n\", \$1, \$2, \$3, \$7, \$6, \$5, \$8}'"
 
 processLine(){
   line="$@" # get all args
@@ -97,6 +101,11 @@ processLine(){
      cat $tmpFile1 | eval "$BASEPARSER | $TDPARSE | $TAIL -n 120 > $tmpFile2"
      eval "$ENDPARSER < $tmpFile2 >$finalFile"
      rm $FILTD.xls
+  fi
+  if [ "$BANCO" == "YA" ]; then
+     $WGET -O $tmpFile1 -q "$YAURL$CODFU$INICIOYA$FIMYA&g=d&ignore=.csv"
+     cat $tmpFile1 | eval "$BASEPARSER | $YAPARSE > $tmpFile2"
+     eval "$ENDPARSER < $tmpFile2 >$finalFile"
   fi
 
   echo -n "  Total de cotacoes >>> "
